@@ -228,3 +228,207 @@ Class Person {
 ```
 
 ## 클래스 필드 정의 제안
+
+클래스 필드 :  클래스 기반 객체지향 언어에서 클래스가 생성할 인스턴스의 프로퍼티를 가리키는 용어
+
+- 자바에서의 클래스필드
+```
+public class Person {
+    private string firstName = ""; //클래스 필드
+}
+```
+
+ - 자바스크립트에서 클래스필드
+
+외부 초기값으로 클래스 필드를 초기화 해야 한다면 기존의 constructor 에서 정의하는 방식을 사용해야 한다.
+```
+class Person {
+    //클래스 필드에 문자열 할당
+    //constructor 내부가 아니면 this 바인딩 사용 x
+    name = "Lee"; 
+
+    //클래스 필드에 함수를 할당
+    //인스턴스의 메서드가 됨
+    getName = function () {
+        return this.name;
+    }
+}
+```
+## private 필드 정의 제안
+
+인스턴스 프로퍼티는 클래스 외부에서 언제나 참조 가능한 public인데 외부에서 참조가 불가능한 private 필드가 제안되었다.
+
+선두에 #을 붙여 선언하며 참조할 때도 #을 붙여주어야 한다.
+
+또한 반드시 클래스 몸체에 정의를 해야한다.
+```
+class Person {
+    #name = "";
+
+    constructor(name) {
+        this.#name = name;
+    }
+    get  name() { //접근자 프로퍼티 
+        return this.#name.trim();
+    }
+}
+
+
+const me = new Person(' Lee ');
+console.log(me.name)
+```
+
+
+## static 필드 제안
+
+자바스크립트의 static 키워드는 정적 필드를 정의할 수 없었다.
+
+이를 위해 static public 필드 , static private 필드, static private 메서드를 정의할 수 있는 표준이 제안되었다.
+
+```
+class MyMath { 
+    //static public 필드
+    static PI = 22 / 7;
+
+    //static private 필드
+    static #num = 10;
+    
+    static increment() {
+        return ++Mymath.#num;
+    }
+}
+
+console.log(MyMath.PI);
+console.log(MyMath.increment());
+```
+
+## 상속에 의한 클래스 확장
+
+상속에 의한 클래스 확장은 기존 클래스를 상속받아 새로운 클래스를 확장하여 정의 하는 것
+
+상속을 통해 부모 클래스의 속성을 그대로 사용하면서 자신만의 고유한 속성만 추가하여 확장이 가능하다.
+
+상속에 의한 클래스 확장은 코드 재사용 관점에서 매우 유용하다.
+
+기본적으로 제공하는 extends 키워드를 사용하여 확장한다.
+
+```
+class Base {} //슈퍼(베이스 / 부모) 클래스
+
+class Derived extends Base {} //파생 클래스 ,자식 클래스, 서브 클래스
+
+```
+
+수퍼클래스와 서브클래스는 인스턴스의 프로토타입 체인 뿐만 아니라 클래스 간의 프로토타입 체인도 생성하여 정적 메서드 , 프로토타입 메서드 모두 상속이 가능하다.
+
+### 동적 상속
+
+extends 키워드는 생성자 함수 또한 상속 받아 클래스로 확장이 가능하다.
+
+[[Construct]] 내부 메서드를 갖는 함수 객체로 평가되는 모든 표현식을 상속받을 수 있다.
+
+```
+function Base1 () {}
+
+class Base2 {}
+
+let condition = true;
+
+class Derived extends (condtion ? Base1  : Base2) {} // 동적 상속
+```
+
+## 서브클래스의 constructor
+super 키워드를 통해 수퍼 클래스의 constructor를 호출하여 인스턴스를 생성한다.
+
+빈 객체가 아닌 프로퍼티를 소유하는 인스턴스를 생성하려면 constructor 내부에서 인스턴스에 프로퍼티를 추가해야한다.
+
+### super 키워드
+함수처럼 호출 할 수도 있고 this와 같이 식별자처럼 참조할 수 있는 특수 키워드
+
+- super를 호출하면 수퍼클래스의 constructor를 호출한다.
+- super를 참조하면 수퍼클래스의 메서드를 호출할 수 있다.
+
+수퍼 클래스에 constuctor를 정의한 후 subclass에서 constructor를 생략하면 암묵적으로 super를 불러와 superclass의 constructor에 전달된다.
+
+subclass에서 추가적으로 인수를 생성한 경우에는 생략이 불가능하다.
+
+```
+class Base {
+    constructor(a,b) {
+        this.a=a;
+        this.b=b;
+    }
+}
+
+class Derived1 extends Base {
+    //constructor(...args) {super(...args)} 가 암묵적으로 정의됨
+}
+
+class Derived2 extends Base {
+    constructor(a, b, c){ //생략 불가
+        super(a,b);
+        this.c = c;
+    }
+}
+```
+
+#### super 호출 규칙
+1. 서브클래스에서 constructor를 생략하지 않는 경우 서브클래스의 constructor에서  super를 반드시 호출해야한다.
+2. 서브클래스의 constructor에서 super를 호출하기 전에 this를 참조할 수 없다.
+3. super는 반드시 서브 클래스의 constructor 내부에서만 호출한다.
+
+### super 참조
+1. 메서드 내에서 super를 참조하면 수퍼클래스의 메서드를 호출할 수 있다.
+```
+class Base {
+    constructor(name) {
+        this.name = name;
+    }
+
+    sayHi() {
+        return `Hi! ${this.name};
+    }
+}
+
+
+ class Derived extends Base {
+    sayHi() {
+        return `${super.sayHi()}. how are you doing?`;
+    }
+
+    //아래와 같이 동작한다.
+    //sayHi() {
+       // const __super = Object.getPrototypeOf(Derived.prototype);
+       //return `${__super.sayHi.call(this)}. how are you doing?`; 
+    //}
+ }
+
+```
+
+super는 자신을 참조하고 있는 메서드가 바인딩 되어 있는 객체의 프로토타입을 가리킨다.
+
+call method를 통해 this를 전달하지 않고 Base.prototype.sayHi()를 호출하면 메서드 내부의 this는 Base.prototype을 가리키게 된다.
+
+Base.prototype.sayHi 메서드는 프로토 타입 메서드로 인스턴스를 가리켜야 한다 . name이 인스턴스에 존재하기 때문이다.
+
+이처럼 super 참조가 동작하기 위해선 super를 참조하고 있는 메서드가 바인딩 되어 있는 객체의 프로토타입을 찾을 수 있어야 하는데 메서드 내부 슬롯[[HomeObject]]에서 자신을 바인딩 하는 객체를 가리켜 참조가 가능하다.
+
+[[HomeObject]]는 ES6 메서드 축약 표현으로 정의된 함수만이 가지며 [[HomeObject]]를 가지는 함수는 super 참조가 가능하다.
+
+2. 서브클래스의 정적 메서드 내에서 super.sayHi는 수퍼클래스의 정적 메서드 sayHi를 가리킨다.
+```
+class Base {
+    static sayHi() {
+        return `Hi!`;
+    }
+}
+
+class Derived extends Base {
+    static sayHi() {
+        return `{super.sayHi()} how are you doing?';
+    }
+}
+
+console.log(Derived.sayHi()); // Hi! how are you doing?
+
+```
